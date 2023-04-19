@@ -1,15 +1,23 @@
-const WookieePeople = require('./wookieePeople');
-const CommonPeople = require('./CommonPeople');
+const AbstractPeople = require("./abstractPeople");
+const CommonPeople = require("./commonPeople");
 
-const peopleFactory = async (id, lang) => {
-    let people = null;
-    if (lang == 'wookiee'){
-        people = new WookieePeople(id);
-    } else {
-        people = new CommonPeople(id);
-    }
-    await people.init();
-    return people;
-}
+const peopleFactory = async (id, lang, app) => {
+  let people = null;
+  if (lang == "wookiee") {
+    people = new AbstractPeople(id);
+  } else {
+    people = new CommonPeople(id);
+  }
 
-module.exports = { peopleFactory }
+  await people
+    .init(app)
+    .then((result) => {
+      return result;
+    })
+    .catch((error) => {
+      return error;
+    });
+  return people;
+};
+
+module.exports = { peopleFactory };

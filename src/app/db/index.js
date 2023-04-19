@@ -6,7 +6,7 @@ const models = require('./models');
 let sequelize;
 
 sequelize = new Sequelize("sqlite::memory:", {
-  logging: false //console.log
+  logging: true //console.log
 });
 
 const db = {
@@ -27,6 +27,17 @@ Object.keys(db).forEach(modelName => {
 
 db.sequelize = sequelize;
 db.Sequelize = Sequelize;
+
+try {
+  sequelize.authenticate();
+  console.log("", "", "Connection has been established successfully.");
+} catch (error) {
+  console.log(
+    "",
+    "",
+    "Unable to connect to the database:" + JSON.stringify(error)
+  );
+}
 
 
 const initDB = async () => {

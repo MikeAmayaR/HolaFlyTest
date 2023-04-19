@@ -1,40 +1,80 @@
 class AbstractPeople {
-
-    constructor(id) {
-        if (this.constructor == AbstractPeople) {
-            throw new Error("Abstract classes can't be instantiated.");
-        }
+  constructor(id) {
+    if (this.constructor == AbstractPeople) {
+      this.id = id;
     }
+    this.id = id;
+  }
 
-    async init(){
-        throw new Error('To be implemented');
-    }
+  async init(app) {
+    const character = await app.db.swPeople.findOne({
+      where: { id: this.id },
+    });
+    if (character) {
+      this.name = character.name;
+      this.mass = parseInt(character.mass);
+      this.height = parseInt(character.height);
+      this.homeworldName = character.homeworldName;
+      this.homeworldId = parseInt(character.homeworldId);
+      return this;
+    } else {
+      return app.swapiFunctions
+        .genericRequest(
+          `${process.env.URL_API}people/${this.id}/`,
+          "GET",
+          null,
+          true
+        )
+        .then((data) => {
+          this.name = data.name;
+          this.mass = parseInt(data.mass);
+          this.height = parseInt(data.height);
+          this.homeworldName = null;
+          this.homeworldId = null;
 
-    getId() {
-       return this.id;
+          return app.swapiFunctions.genericRequest(
+            data.homeworld,
+            "GET",
+            null,
+            true
+          );
+        })
+        .then((homeworldData) => {
+          this.homeworldName = homeworldData.name;
+          this.homeworldId = parseInt(
+            homeworldData.url.match(/\/([0-9]*)\/$/)[1]
+          );
+          return this;
+        });
     }
+  }
 
-    getName() {
-        return this.name;
-    }
+  getId() {
+    return this.id;
+  }
 
-    getMass() {
-        return this.mass;
-    }
+  getName() {
+    return this.name;
+  }
 
-    getHeight() {
-        return this.height;
-    }
+  getMass() {
+    return this.mass;
+  }
 
-    getHomeworldName() {
-        return this.homeworldName;
-    }
+  getHeight() {
+    return this.height;
+  }
 
-    getHomeworlId() {
-        return this.homeworlId;
-    }
+  getHomeworldName() {
+    return this.homeworldName;
+  }
 
-    getWeightOnPlanet(planetId){
-        throw new Error('To be implemented');
-    }
+  getHomeworlId() {
+    return this.homeworlId;
+  }
+
+  getWeightOnPlanet(app) {
+    return app.swapiFunctions.getWeightOnPlanet(this.mass, this.homeworldId);
+  }
 }
+module.exports = AbstractPeople;
